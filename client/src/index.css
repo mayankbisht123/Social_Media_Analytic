@@ -1,0 +1,55 @@
+/* stylelint-disable at-rule-no-unknown */
+/* Custom styles */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* postcss-disable-next-line at-rule-no-unknown */
+@import 'tailwindcss';
+@tailwind components;
+
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  line-height: 1.6;
+  color: #1f2937;
+  background-color: #F3F0E9;
+}
+
+/* Custom component styles */
+.card-hover {
+  @apply transition-all duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl;
+}
+
+.gradient-primary {
+  background: linear-gradient(135deg, #C47566 0%, #E6B794 50%, #F0D8B8 100%);
+}
+
+.gradient-secondary {
+  background: linear-gradient(135deg, #E6B794 0%, #F0D8B8 100%);
+}
+
+.gradient-tertiary {
+  background: linear-gradient(135deg, #C47566 0%, #E6B794 100%);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

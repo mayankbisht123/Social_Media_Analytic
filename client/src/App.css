@@ -1,0 +1,122 @@
+/* Global styles for enhanced appearance */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  min-height: 100vh;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced focus states for accessibility */
+button:focus,
+input:focus,
+textarea:focus {
+  outline: 2px solid #475569;
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #475569 0%, #0ea5e9 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #334155 0%, #0284c7 100%);
+}
+
+/* Enhanced button hover effects */
+.MuiButton-root {
+  transition: all 0.3s ease !important;
+}
+
+.MuiButton-root:hover {
+  transform: translateY(-2px) !important;
+}
+
+/* Enhanced card hover effects */
+.MuiCard-root {
+  transition: all 0.3s ease !important;
+}
+
+/* Enhanced paper hover effects */
+.MuiPaper-root {
+  transition: all 0.3s ease !important;
+}
+
+/* Loading animation for better UX */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.loading {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Enhanced typography */
+.MuiTypography-root {
+  font-family: inherit !important;
+}
+
+/* Better spacing for mobile */
+@media (max-width: 768px) {
+  body {
+    padding: 0;
+  }
+  
+  .MuiContainer-root {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+
+/* Enhanced shadows for depth */
+.MuiPaper-elevation1 {
+  box-shadow: 0px 2px 8px rgba(0,0,0,0.08) !important;
+}
+
+.MuiPaper-elevation8 {
+  box-shadow: 0px 8px 32px rgba(0,0,0,0.12) !important;
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition: all 0.2s ease;
+}
+
+/* Enhanced focus ring for better accessibility */
+.MuiButton-root:focus-visible,
+.MuiIconButton-root:focus-visible {
+  outline: 2px solid #667eea !important;
+  outline-offset: 2px !important;
+}
