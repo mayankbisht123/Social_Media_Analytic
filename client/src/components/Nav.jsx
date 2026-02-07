@@ -3,12 +3,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import dashContext from '../context/dashContext';
 
 
-export default function Nav() {
+export default function Nav(props) {
   const [open, setOpen] = useState(false);
+  const {insightVisibility,setInsightVisibility}=props
   const { reddit, ActivityFeed } = useContext(dashContext);
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
 
+  const handleInsight=()=>{
+    setInsightVisibility(!insightVisibility)
+  }
   const handleLoginAndLogout = () => {
     if (token) {
       localStorage.removeItem('token');
@@ -42,7 +46,12 @@ export default function Nav() {
                 📊 Social Media Analytics Dashboard
               </h1>
             </button>
-
+            <div className='flex gap-3'>
+            {/* {Insight Button} */}
+            <button className='text-4xl gap-2 outline-none focus-visible:outline-none bg-transparent focus:outline-none cursor-pointer'
+                  onClick={handleInsight}>
+              💡
+            </button>
             {/* Login/Logout Button */}
             <Link to="/login" className="no-underline">
               <button
@@ -69,6 +78,7 @@ export default function Nav() {
                 )}
               </button>
             </Link>
+            </div>
           </div>
         </div>
       </nav>

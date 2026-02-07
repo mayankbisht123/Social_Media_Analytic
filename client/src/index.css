@@ -35,6 +35,15 @@ body {
 .gradient-tertiary {
   background: linear-gradient(135deg, #C47566 0%, #E6B794 100%);
 }
+.gradient-fourth {
+  background: linear-gradient(
+  to bottom,
+  #e6e1e1,
+  #eeeeee
+);
+
+}
+
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {

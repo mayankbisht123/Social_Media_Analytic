@@ -4,6 +4,40 @@ import dashContext from "./dashContext";
 const DashState=(props)=>{
     const[analytics,setAnalytics]=useState([]);
     const url="http://localhost:4000";
+    const py_url="http://localhost:8000";
+
+
+    const sendAssistant=async(input)=>{
+        if(!localStorage.getItem('token'))
+        {
+            console.log("Token Corrupted");
+            return;
+        }
+        try {
+            const jwtToken=localStorage.getItem('token');
+            const response=await fetch(py_url+"/agent/run",{
+                method:'POST',
+                headers:{
+                    'Authorization':`Bearer ${jwtToken}`,
+                    'Content-Type':'application/json'
+                },
+                body:JSON.stringify({question:input})
+            });
+
+            const data=await response.json();
+
+            if(!response.ok)
+            {
+                console.error(data);
+                return;
+            }
+            return data;
+            
+        } catch (error) {
+            console.log("Backend Error, "+error)
+            return;
+        }
+    }
 
     const Login=async(loginInfo)=>{
         try{
@@ -227,7 +261,7 @@ const DashState=(props)=>{
     }
 
     return(
-        <dashContext.Provider value={{Login,Signup,reddit,getReddit,analytics,setAnalytics,engagementRate,immersionScore,ActivityFeed}}>
+        <dashContext.Provider value={{Login,Signup,reddit,getReddit,analytics,setAnalytics,engagementRate,immersionScore,ActivityFeed,sendAssistant}}>
             {props.children}
         </dashContext.Provider>
     );

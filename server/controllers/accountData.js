@@ -7,7 +7,7 @@ const routes = express.Router();
 const getRedditAnalytics = require('../middlewares/getRedditAnalytics');
 const { formatAnalytics } = require('../utils/analyticsFormatter');
 
-routes.get('/reddit/fetch', verifyUser,refreshRedditToken, async (req, res) => {
+routes.get('/reddit/fetch', verifyUser, refreshRedditToken, async (req, res) => {
     const user = await User.findById(req.userId);
     const { access_token, username } = user.reddit;
 
@@ -22,7 +22,7 @@ routes.get('/reddit/fetch', verifyUser,refreshRedditToken, async (req, res) => {
 
 });
 
-routes.get('/reddit/get', verifyUser,async (req, res) => {
+routes.get('/reddit/get', verifyUser, async (req, res) => {
 
     try {
         const user = await User.findById(req.userId);
@@ -40,7 +40,7 @@ routes.get('/reddit/get', verifyUser,async (req, res) => {
     }
 });
 
-routes.get('/reddit/activity',verifyUser,refreshRedditToken, async (req, res) => {
+routes.get('/reddit/activity', verifyUser, refreshRedditToken, async (req, res) => {
     try {
         const user = await User.findById(req.userId)
         if (!user) {
@@ -56,7 +56,7 @@ routes.get('/reddit/activity',verifyUser,refreshRedditToken, async (req, res) =>
         });
 
         const posts = response.data.data.children;
-        const result={};
+        const result = {};
 
 
         posts.forEach(p => {
@@ -65,13 +65,11 @@ routes.get('/reddit/activity',verifyUser,refreshRedditToken, async (req, res) =>
             const month = date.toLocaleString('default', { month: 'long' });
             const year = date.getFullYear().toString();
 
-            if(!result[year])
-            {
-                result[year]={};
+            if (!result[year]) {
+                result[year] = {};
             }
-            if(!result[year][month])
-            {
-                result[year][month]={posts:[]};
+            if (!result[year][month]) {
+                result[year][month] = { posts: [] };
             }
             result[year][month].posts.push({
                 title: post.title,
@@ -84,11 +82,45 @@ routes.get('/reddit/activity',verifyUser,refreshRedditToken, async (req, res) =>
 
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).json({"message":"Internal Server Error",'error':error});
+        res.status(500).json({ "message": "Internal Server Error", 'error': error });
     }
 
 
 })
+
+routes.get("/reddit/agent/summary", verifyUser, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ message: "user doesn't exist" })
+        }
+
+        const data = user.reddit.analytics || []
+        const monthly = data.flatMap((yearObj) =>
+            (yearObj.months || []).map((m) => ({
+                year: yearObj.year,
+                month: m.month,
+                totalLikes: m.totalLikes,
+                totalComments: m.totalComments,
+                totalReplies: m.totalReplies,
+                totalViews: m.totalViews,
+                postCount: m.postCount,
+                subredditStats: m.subredditStats,
+                topPosts: m.topPosts,
+            }))
+        );
+
+        res.status(200).json({
+            userId:req.userId,
+            summary:monthly
+        })
+
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({message:"Internal Server error"});
+    }
+});
 
 
 module.exports = routes;
