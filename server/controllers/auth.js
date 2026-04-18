@@ -99,7 +99,7 @@ routes.get('/reddit', async (req, res) => {
         const userId=decoded.user.id;
         const CLIENT_ID = process.env.REDDIT_CLIENT_ID;
         const REDIRECT_URI = 'http://localhost:4000/api/auth/reddit/callback';
-        const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${CLIENT_ID}&response_type=code&state=${userId}&redirect_uri=${REDIRECT_URI}&duration=permanent&scope=identity history read&prompt=consent`;        
+        const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${CLIENT_ID}&response_type=code&state=${userId}&redirect_uri=${REDIRECT_URI}&duration=permanent&scope=identity history read&prompt=login`;        
         res.redirect(authUrl);
 
     } catch (error) {
@@ -141,6 +141,7 @@ routes.get('/reddit/callback', async (req, res) => {
             headers: { Authorization: `bearer ${access_token}`, 'User-Agent': userAgent }
         });
 
+        console.log(redditUser)
         const karma=await getRedditKarma(access_token);
         // console.log(karma);
 
