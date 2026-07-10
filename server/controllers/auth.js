@@ -98,7 +98,8 @@ routes.get('/reddit', async (req, res) => {
         const decoded=jwt.verify(token,jwtkey)
         const userId=decoded.user.id;
         const CLIENT_ID = process.env.REDDIT_CLIENT_ID;
-        const REDIRECT_URI = 'http://localhost:4000/api/auth/reddit/callback';
+        const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000';
+        const REDIRECT_URI = `${BACKEND_URL}/api/auth/reddit/callback`;
         const authUrl = `https://www.reddit.com/api/v1/authorize?client_id=${CLIENT_ID}&response_type=code&state=${userId}&redirect_uri=${REDIRECT_URI}&duration=permanent&scope=identity history read&prompt=login`;        
         res.redirect(authUrl);
 
@@ -113,7 +114,9 @@ routes.get('/reddit/callback', async (req, res) => {
 
     try {
 
-        const REDIRECT_URI = 'http://localhost:4000/api/auth/reddit/callback';
+        const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000';
+        const REDIRECT_URI = `${BACKEND_URL}/api/auth/reddit/callback`;
+        
         const code = req.query.code;
         const userId = req.query.state;
         const CLIENT_ID = process.env.REDDIT_CLIENT_ID;
@@ -168,7 +171,9 @@ routes.get('/reddit/callback', async (req, res) => {
          
         // res.send("Reddit account linked successfully!");
         console.log('redirecting');
-        res.redirect('http://localhost:5173/?status=success');
+
+        const FRONTEND_URL=process.env.FRONTEND_URL || 'http://localhost:5173';
+        res.redirect(`${FRONTEND_URL}/?status=success`);
 
     } catch (error) {
         console.error(error);

@@ -1,3 +1,4 @@
+// Home.jsx
 import React, { useContext, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Card from '../components/Card';
@@ -211,7 +212,43 @@ const Home = () => {
         ];
     }, [totals, analytics]);
 
+    const isRedditLinked = analytics && analytics.username;
+    const hasPosts = totals.totalPosts > 0 || totals.totalComments > 0;
 
+    if (!isRedditLinked) {
+        return (
+            <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 text-center mt-20">
+                <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-12 max-w-2xl mx-auto border border-gray-100">
+                    <div className="text-6xl mb-6">👈</div>
+                    <h2 className="text-3xl font-bold text-gray-800 mb-4">Connect Your Reddit Account</h2>
+                    <p className="text-gray-600 text-lg mb-8">
+                        Click the <span className="font-bold text-orange-500">Add Reddit</span> button in the sidebar to link your account and unlock your analytics dashboard.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    if (isRedditLinked && !hasPosts) {
+        return (
+            <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 text-center mt-20">
+                <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-12 max-w-2xl mx-auto border border-gray-100">
+                    <div className="text-6xl mb-6">👻</div>
+                    <h2 className="text-3xl font-bold text-gray-800 mb-4">
+                        Welcome, u/{analytics.username}!
+                    </h2>
+                    <p className="text-gray-600 text-lg mb-4">
+                        Your account is successfully linked, but we couldn't find any recent posts or comments to analyze.
+                    </p>
+                    <div className="bg-slate-50 rounded-xl p-6 mt-6 text-sm text-slate-500 border border-slate-200">
+                        Once you start posting or commenting on Reddit, your stats will automatically appear here!
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    
 
 
     return (

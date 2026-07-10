@@ -6,6 +6,7 @@ import requests
 from fastapi import FastAPI,Header,HTTPException
 from pydantic import BaseModel
 from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -17,7 +18,12 @@ load_dotenv()
 #---------
 
 GEMINI_API_KEY=os.getenv("GEMINI_API_KEY")
-NODE_SUMMARY_URL="http://localhost:4000/api/redditData/reddit/agent/summary"
+
+# Grab live URLs from Render/Vercel, fall back to localhost for testing
+NODE_BACKEND_URL = os.getenv("NODE_BACKEND_URL", "http://localhost:4000")
+NODE_SUMMARY_URL = f"{NODE_BACKEND_URL}/api/redditData/reddit/agent/summary"
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
 MAX_HISTORY=6
 SESSION_TTL=60*60 # 1hour
 
@@ -27,20 +33,18 @@ SESSION_TTL=60*60 # 1hour
 
 app=FastAPI(title="redis based agent")
 client=genai.Client(api_key=GEMINI_API_KEY)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],  # adjust if needed
+    allow_origins=[FRONTEND_URL, "http://localhost:3000"],  # adjust if needed
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-redis_client=redis.Redis(
-    host="localhost",
-    port=6379,
-    db=0,
-    decode_responses=True
-)
+#Redis connection
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+redis_client = redis.from_url(REDIS_URL, decode_responses=True)
 
 
 
@@ -50,6 +54,7 @@ redis_client=redis.Redis(
 
 class AgentRequest(BaseModel):
     question:str
+    use_web_search: bool = False
 
 # -----
 # REDIS HELPER
@@ -58,21 +63,26 @@ class AgentRequest(BaseModel):
 def get_chat_key(user_id:str)->str:
     return f"chat:{user_id}"
 
-def build_prompt(history:list,user_input:str,monthly_summary:list)->str:
-    prompt=("You are Insight Agent for social media analytics.\n"
-        "You will be given monthly analytics summary for Reddit.\n"
-        "Answer based ONLY on the analytics data.\n"
-        "If user requests a table, output a clean markdown table.\n"
-        "Be specific and analytical.\n\n"
-        "=== ANALYTICS SUMMARY (monthly) ===\n"
-        f"{json.dumps(monthly_summary, ensure_ascii=False)}\n\n"
-        "=== CHAT HISTORY ===\n")
+def build_prompt(history: list, user_input: str, monthly_summary: list, use_web_search: bool) -> str:
+    prompt = ("You are an Insight Agent for social media analytics.\n"
+              "You will be given monthly analytics summary for Reddit.\n")
+    
+    # Strict behavior control based on the toggle
+    if use_web_search:
+        prompt += ("Web Search is ON. You may search the web for external information to supplement the data. "
+                   "If you use web sources, explicitly mention them.\n")
+    else:
+        prompt += ("Web Search is OFF. Answer based ONLY on the provided analytics data. DO NOT GUESS. "
+                   "If the question is not related to the topic or data is missing, tell the user straight 'No, I do not have data for that'.\n")
+
+    prompt += ("\n=== ANALYTICS SUMMARY (monthly) ===\n"
+               f"{json.dumps(monthly_summary, ensure_ascii=False)}\n\n"
+               "=== CHAT HISTORY ===\n")
 
     for msg in history:
-        prompt +=f"{msg['role'].capitalize()}:{msg['content']}\n"
+        prompt += f"{msg['role'].capitalize()}: {msg['content']}\n"
 
-    prompt+=f"User: {user_input}\nAssistant:"
-
+    prompt += f"User: {user_input}\nAssistant:"
     return prompt
 
 
@@ -137,15 +147,33 @@ def run_agent(req:AgentRequest,authorization:str=Header(None)):
     monthly_summary= Node_data['summary']
 
     history=get_session_history(user_id)
+    prompt=build_prompt(history,req.question,monthly_summary,req.use_web_search)
 
-    prompt=build_prompt(history,req.question,monthly_summary)
+    config = types.GenerateContentConfig()
+    if req.use_web_search:
+        config.tools = [types.Tool(google_search=types.GoogleSearch())]
+    
 
     response=client.models.generate_content(
-        model="gemini-flash-latest",
-        contents=prompt
+        model="gemini-2.5-flash",
+        contents=prompt,
+        config=config
     )
 
     answer=response.text.strip()
+
+    if req.use_web_search and response.candidates and response.candidates[0].grounding_metadata:
+        chunks = response.candidates[0].grounding_metadata.grounding_chunks
+        sources = []
+        if chunks:
+            for chunk in chunks:
+                if hasattr(chunk, 'web') and chunk.web and chunk.web.uri:
+                    sources.append(f"- [{chunk.web.title}]({chunk.web.uri})")
+            
+            if sources:
+                answer += "\n\n**Sources:**\n" + "\n".join(set(sources))
+
+    
     append_to_history(
         user_id,
         [

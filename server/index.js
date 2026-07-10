@@ -2,7 +2,11 @@ const connectToMongooes = require('./db');
 const express= require('express');
 const cors=require('cors');
 const path=require('path');
+require('dotenv').config();
+const dns = require('dns');
 
+// Force Node.js to bypass your local router's DNS and use Google's
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 
 connectToMongooes();

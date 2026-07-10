@@ -1,13 +1,14 @@
+// DashState.jsx
 import {useState} from "react";
 import dashContext from "./dashContext";
 
 const DashState=(props)=>{
     const[analytics,setAnalytics]=useState([]);
-    const url="http://localhost:4000";
-    const py_url="http://localhost:8000";
+    const url = import.meta.env.VITE_NODE_URL || "http://localhost:4000";
+    const py_url = import.meta.env.VITE_PYTHON_URL || "http://localhost:8000";
 
 
-    const sendAssistant=async(input)=>{
+    const sendAssistant=async(input,useWebSearch=false)=>{
         if(!localStorage.getItem('token'))
         {
             console.log("Token Corrupted");
@@ -21,7 +22,7 @@ const DashState=(props)=>{
                     'Authorization':`Bearer ${jwtToken}`,
                     'Content-Type':'application/json'
                 },
-                body:JSON.stringify({question:input})
+                body:JSON.stringify({question:input, use_web_search:useWebSearch})
             });
 
             const data=await response.json();
@@ -105,8 +106,7 @@ const DashState=(props)=>{
 
         try {
 
-            window.location.href = `http://localhost:4000/api/auth/reddit?token=${token}`;
-            
+            window.location.href = `${url}/api/auth/reddit?token=${token}`;            
         } catch (error) {
             console.error(error);
             return;
@@ -192,15 +192,15 @@ const DashState=(props)=>{
     // Calculates immersion score using the formula: (totalComments * 0.7) + (totalReplies * 0.3) + (upvotes * 0.2)
     const immersionScore = (month) => {
         // Early return if analytics is not available or doesn't have the expected structure
-        if (!analytics || !analytics.analytics || !Array.isArray(analytics.analytics)) {
+        if (!analytics || !analytics.analytics || !Array.isArray(analytics.analytics) || !month) {
             // console.log('Analytics data not available or invalid structure');
             return 0;
         }
 
         // Get the required metrics
-        const comments = month.totalComments;
-        const replies = month.totalReplies;
-        const upvotes = month.totalLikes;
+        const comments = month.totalComments || 0;
+        const replies = month.totalReplies || 0;
+        const upvotes = month.totalLikes || 0;
 
         // console.log('Immersion calculation:', { comments, replies, upvotes });
 
@@ -214,14 +214,14 @@ const DashState=(props)=>{
     // Calculates engagement rate using the formula: ((upvotes + total_comments) / followers) * 100
     const engagementRate = (month) => {
         // Early return if analytics is not available or doesn't have the expected structure
-        if (!analytics || !analytics.analytics || !Array.isArray(analytics.analytics)) {
+        if (!analytics || !analytics.analytics || !Array.isArray(analytics.analytics) || !month) {
             // console.log('Analytics data not available or invalid structure');
             return 0;
         }
 
         // Get total upvotes and comments
-        const upvotes = month.totalLikes;
-        const comments = month.totalComments;
+        const upvotes = month.totalLikes || 0;
+        const comments = month.totalComments || 0;
         const followers = analytics.karma || 0;
         console.log(upvotes)
         console.log(comments)
